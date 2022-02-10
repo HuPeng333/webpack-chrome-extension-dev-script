@@ -2,7 +2,8 @@
 
 webpack-chrome-extension-dev的webpack构建脚本
 
-安装[webpack-chrome-extension-dev-template](https://github.com/HuPeng333/webpack-chrome-extension-dev-template):
+运行:
 ```shell
 npx webpack-chrome-extension-dev-template
 ```
+详细请见 [webpack-chrome-extension-dev-template](https://github.com/HuPeng333/webpack-chrome-extension-dev-template)

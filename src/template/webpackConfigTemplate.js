@@ -2,28 +2,27 @@ const path = require('path')
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const ChromeExtensionDevPlugin = require('../plugin/index.js')
 const fs = require('fs')
-const webpack = require('webpack')
 
 function readManifest(path) {
   return JSON.parse(fs.readFileSync(path, 'utf-8'))
 }
 
 module.exports = {
-  entry: path.resolve(process.cwd(), 'src/content-script/index'),
   output: {
     path: path.resolve(process.cwd(), 'dist'),
-    filename: "content-script/index.js",
+    filename: "content-script/[name]/index.js",
     libraryTarget: "window",
     clean: true,
-    publicPath: "./"
+    publicPath: './'
+  },
+  optimization: {
+    runtimeChunk: false
   },
   mode: "production",
   plugins: [
-    new webpack.optimize.LimitChunkCountPlugin({
-      maxChunks: 1,
-    }),
     new MiniCssExtractPlugin({
-      filename: 'content-script/index.css',
+      filename: 'content-script/[name]/index.css',
+      chunkFilename: 'content-script/[name]/index.css',
       runtime: false
     }),
     new ChromeExtensionDevPlugin({
@@ -36,16 +35,10 @@ module.exports = {
         test:/\.css$/,
         use:[
           {
-          loader: MiniCssExtractPlugin.loader,
-          options: {
-            esModule: false
-          }
+          loader: MiniCssExtractPlugin.loader
         },
           {
-          loader: 'css-loader',
-          options: {
-            esModule: false,
-          }
+          loader: 'css-loader'
         }],
       }
     ]

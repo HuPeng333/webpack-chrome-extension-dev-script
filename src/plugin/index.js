@@ -15,13 +15,7 @@ let manifestTemplate = {
     default_popup: 'popup/index.html'
   },
   permissions: [],
-  content_scripts: [
-    {
-      matches: [],
-      js: ['content-script/index.js'],
-      css: ['content-script/index.css']
-    }
-  ],
+  content_scripts: [],
   options_ui: {
     page: 'options/index.html'
   }
@@ -36,25 +30,14 @@ class ConsoleLogOnBuildWebpackPlugin {
     if (options.manifestConfig) {
       manifestTemplate = objectUtils.deepCombineObject(manifestTemplate, options.manifestConfig)
     }
-    if (manifestTemplate.content_scripts_matches) {
-      if (Array.isArray(manifestTemplate.content_scripts_matches)) {
-        manifestTemplate.content_scripts[0].matches = manifestTemplate.content_scripts[0].matches.concat(manifestTemplate.content_scripts_matches)
-      } else {
-        throw new Error('content_scripts_matches must be a Array')
-      }
-      manifestTemplate.content_scripts_matches = undefined
-    }
-    if (manifestTemplate.content_scripts[0].matches.length === 0) {
-      console.warn('these is no "content_scripts_matches" property in "manifestConfig.json", so it will use "<all_urls>" instead')
-      manifestTemplate.content_scripts[0].matches[0] = '<all_urls>'
-    }
+    this.manifestConfig = options.manifestConfig ? options.manifestConfig : {}
   }
 
   apply(compiler) {
     this.loadPackageJson(compiler)
     const BASE_SRC_URL = path.resolve(compiler.context, 'src')
 
-    compiler.hooks.afterEmit.tap(pluginName, () => {
+    compiler.hooks.afterEmit.tap(pluginName, (compilation) => {
       try {
         fsUtils.copyDirSync(path.resolve(BASE_SRC_URL, this.popupPath), path.resolve(compiler.outputPath, this.popupPath))
       } catch (e) {
@@ -72,8 +55,23 @@ class ConsoleLogOnBuildWebpackPlugin {
         fsUtils.copyDirSync(path.resolve(BASE_SRC_URL, this.optionsPath), path.resolve(compiler.outputPath, this.optionsPath))
       } catch (e) {
         manifestTemplate.options_ui = ''
-        console.log(e)
       }
+
+      // 多模块配置
+      Object.keys(compiler.options.entry).forEach(moduleName => {
+        let matches
+        if (this.manifestConfig.content_scripts && this.manifestConfig.content_scripts[moduleName]) {
+          matches = this.manifestConfig.content_scripts[moduleName]
+        } else {
+          matches = ['<all_urls>']
+          compilation.warnings.push(`content-script '${moduleName}' don't specific the matches in the 'manifestConfig.json', it will use '<all_urls>' instead`)
+        }
+        manifestTemplate.content_scripts.push({
+          matches,
+          js: [`content-script/${moduleName}/index.js`],
+          css: [`content-script/${moduleName}/index.css`]
+        })
+      })
 
       fs.writeFileSync(`${compiler.outputPath}/manifest.json`, JSON.stringify(manifestTemplate))
     })

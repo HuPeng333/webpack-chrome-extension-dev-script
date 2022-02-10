@@ -15,7 +15,7 @@ function run(webpackConfig) {
         chunks: false,
         colors: true
       }));
-      console.log(`hot update success! ${Date.now()}`)
+      console.log(`${new Date().toLocaleString()}: update success!`)
       if (webpackConfig.mode !== 'production') {
         console.warn('the "development" mode could not run in browser, it will throw a error in your browser console!')
       }
