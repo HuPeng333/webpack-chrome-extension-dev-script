@@ -58,10 +58,14 @@ class ConsoleLogOnBuildWebpackPlugin {
       }
 
       // 多模块配置
+      if (manifestTemplate.content_scripts.length > 0) {
+        compilation.warnings.push(`'content_scripts' field is not allowed in manifestConfig.json, consider use 'content_scripts_matches' to specific the 'match' field`)
+      }
+      manifestTemplate.content_scripts = []
       Object.keys(compiler.options.entry).forEach(moduleName => {
         let matches
-        if (this.manifestConfig.content_scripts && this.manifestConfig.content_scripts[moduleName]) {
-          matches = this.manifestConfig.content_scripts[moduleName]
+        if (this.manifestConfig.content_scripts_matches && this.manifestConfig.content_scripts_matches[moduleName]) {
+          matches = this.manifestConfig.content_scripts_matches[moduleName]
         } else {
           matches = ['<all_urls>']
           compilation.warnings.push(`content-script '${moduleName}' don't specific the matches in the 'manifestConfig.json', it will use '<all_urls>' instead`)
