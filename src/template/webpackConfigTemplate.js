@@ -1,6 +1,6 @@
 const path = require('path')
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
-const ChromeExtensionDevPlugin = require('./src/plugin/index.js')
+const ChromeExtensionDevPlugin = require('../plugin/index.js')
 const fs = require('fs')
 const webpack = require('webpack')
 

@@ -1,12 +1,11 @@
 const webpack = require('webpack')
-const webpackConfig = require('../webpack.config')
 
 
-function run() {
+function run(webpackConfig) {
   webpackConfig.mode = 'production'
   const compiler = webpack(webpackConfig);
+
   compiler.run((err, stats) => {
-    console.log(webpackConfig)
     if (err) {
       console.error(err)
     }

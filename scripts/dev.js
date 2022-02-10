@@ -1,8 +1,7 @@
 const webpack = require('webpack')
-const webpackConfig = require('../webpack.config')
 
 
-function run() {
+function run(webpackConfig) {
   webpackConfig.mode = 'development'
   const compiler = webpack(webpackConfig);
 

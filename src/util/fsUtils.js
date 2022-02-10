@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 
-const copyDirSync = (src, dest) => {
+module.exports.copyDirSync = (src, dest) => {
   let files
   files = fs.readdirSync(src)
   files.forEach((item) => {
@@ -20,4 +20,4 @@ const copyDirSync = (src, dest) => {
     }
   });
 }
-module.exports.copyDirSync = copyDirSync
+
