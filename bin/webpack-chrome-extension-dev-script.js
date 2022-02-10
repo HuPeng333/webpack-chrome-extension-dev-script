@@ -8,6 +8,10 @@ function run(argv) {
   if (!order) {
     order = 'build'
   }
+  console.log('It will takes a little seconds!')
+  if (webpackConfig.mode !== 'production') {
+    console.warn('the "development" mode could not run in browser, it will throw a error in your browser console!')
+  }
   if (order === 'build') {
     build(webpackConfig)
   } else if (order === 'dev') {

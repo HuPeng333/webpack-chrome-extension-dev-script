@@ -2,7 +2,7 @@ const webpack = require('webpack')
 
 
 function run(webpackConfig) {
-  webpackConfig.mode = 'development'
+  webpackConfig.mode = 'production'
   const compiler = webpack(webpackConfig);
 
   compiler.watch({
@@ -16,6 +16,9 @@ function run(webpackConfig) {
         colors: true
       }));
       console.log(`hot update success! ${Date.now()}`)
+      if (webpackConfig.mode !== 'production') {
+        console.warn('the "development" mode could not run in browser, it will throw a error in your browser console!')
+      }
     }
   })
 }

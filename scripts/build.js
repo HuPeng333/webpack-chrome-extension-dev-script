@@ -14,7 +14,10 @@ function run(webpackConfig) {
     } else {
       console.log(stats.toString({
         colors: true
-      }));
+      }))
+      if (webpackConfig.mode !== 'production') {
+        console.warn('the "development" mode could not run in browser, it will throw a error in your browser console!')
+      }
     }
   })
 }
