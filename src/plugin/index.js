@@ -70,10 +70,11 @@ class ConsoleLogOnBuildWebpackPlugin {
           matches = ['<all_urls>']
           compilation.warnings.push(`content-script '${moduleName}' don't specific the matches in the 'manifestConfig.json', it will use '<all_urls>' instead`)
         }
+        const hasCss = fs.existsSync(`${compiler.outputPath}/content-script/${moduleName}/index.css`)
         manifestTemplate.content_scripts.push({
           matches,
           js: [`content-script/${moduleName}/index.js`],
-          css: [`content-script/${moduleName}/index.css`]
+          css: hasCss ? [`content-script/${moduleName}/index.css`] : undefined
         })
       })
 
