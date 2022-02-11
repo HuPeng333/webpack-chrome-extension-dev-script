@@ -1,6 +1,6 @@
 {
   "name": "webpack-chrome-extension-dev-script",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "webpack-chrome-extension-dev的webpack构建脚本",
   "bin": {
     "webpack-chrome-extension-dev-script": "./bin/webpack-chrome-extension-dev-script.js"

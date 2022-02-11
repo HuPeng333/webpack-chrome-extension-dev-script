@@ -2,24 +2,11 @@ const fs = require('fs')
 const fsUtils = require('../util/fsUtils')
 const path = require('path')
 const objectUtils = require('../util/objectUtils')
+const manifestTemplate = require('../template/manifestTemplate')
 
 const pluginName = 'ConsoleLogOnBuildWebpackPlugin';
 
 
-let manifestTemplate = {
-  name: '',
-  version: '',
-  manifest_version: 3,
-  description: '',
-  action: {
-    default_popup: 'popup/index.html'
-  },
-  permissions: [],
-  content_scripts: [],
-  options_ui: {
-    page: 'options/index.html'
-  }
-}
 
 class ConsoleLogOnBuildWebpackPlugin {
 
@@ -28,20 +15,20 @@ class ConsoleLogOnBuildWebpackPlugin {
     this.publicPath = 'public'
     this.optionsPath = 'options'
     if (options.manifestConfig) {
-      manifestTemplate = objectUtils.deepCombineObject(manifestTemplate, options.manifestConfig)
+      this.manifestTemplate = objectUtils.deepCombineObject(manifestTemplate, options.manifestConfig)
     }
     this.manifestConfig = options.manifestConfig ? options.manifestConfig : {}
   }
 
   apply(compiler) {
-    this.loadPackageJson(compiler)
+    loadPackageJson(compiler, this.manifestTemplate)
     const BASE_SRC_URL = path.resolve(compiler.context, 'src')
 
     compiler.hooks.afterEmit.tap(pluginName, (compilation) => {
       try {
         fsUtils.copyDirSync(path.resolve(BASE_SRC_URL, this.popupPath), path.resolve(compiler.outputPath, this.popupPath))
       } catch (e) {
-        manifestTemplate.action = ''
+        this.manifestTemplate.action = ''
       }
 
       try {
@@ -54,40 +41,65 @@ class ConsoleLogOnBuildWebpackPlugin {
         // options文件夹
         fsUtils.copyDirSync(path.resolve(BASE_SRC_URL, this.optionsPath), path.resolve(compiler.outputPath, this.optionsPath))
       } catch (e) {
-        manifestTemplate.options_ui = ''
+        this.manifestTemplate.options_ui = ''
       }
 
       // 多模块配置
-      if (manifestTemplate.content_scripts.length > 0) {
-        compilation.warnings.push(`'content_scripts' field is not allowed in manifestConfig.json, consider use 'content_scripts_matches' to specific the 'match' field`)
-      }
-      manifestTemplate.content_scripts = []
-      Object.keys(compiler.options.entry).forEach(moduleName => {
-        let matches
-        if (this.manifestConfig.content_scripts_matches && this.manifestConfig.content_scripts_matches[moduleName]) {
-          matches = this.manifestConfig.content_scripts_matches[moduleName]
-        } else {
-          matches = ['<all_urls>']
-          compilation.warnings.push(`content-script '${moduleName}' don't specific the matches in the 'manifestConfig.json', it will use '<all_urls>' instead`)
-        }
-        const hasCss = fs.existsSync(`${compiler.outputPath}/content-script/${moduleName}/index.css`)
-        manifestTemplate.content_scripts.push({
-          matches,
-          js: [`content-script/${moduleName}/index.js`],
-          css: hasCss ? [`content-script/${moduleName}/index.css`] : undefined
-        })
-      })
+      writeManifestJson(this.manifestConfig, this.manifestTemplate,compilation, compiler)
+    })
 
-      fs.writeFileSync(`${compiler.outputPath}/manifest.json`, JSON.stringify(manifestTemplate))
+    let isFirst = true
+    compiler.hooks.watchRun.tap(pluginName, () => {
+      if (!isFirst) {
+        console.log('detected file change, preparing hot update!')
+      } else {
+        isFirst = false
+      }
     })
   }
 
-  loadPackageJson ({context}) {
-    const data = JSON.parse(fs.readFileSync(path.resolve(context, 'package.json'), 'utf-8'))
-    manifestTemplate.name = data.name
-    manifestTemplate.version = data.version
-    manifestTemplate.description = data.description
-  }
+
+}
+
+/**
+ * 加载package.json
+ * @param context 传入compiler
+ * @param manifestTemplate
+ */
+function loadPackageJson ({context}, manifestTemplate) {
+  const data = JSON.parse(fs.readFileSync(path.resolve(context, 'package.json'), 'utf-8'))
+  manifestTemplate.name = data.name
+  manifestTemplate.version = data.version
+  manifestTemplate.description = data.description
+}
+
+/**
+ * 生成并保存manifestJson
+ * @param manifestConfig 用户外部配置的config
+ * @param manifestTemplate 模板
+ * @param compilation
+ * @param compiler
+ */
+function writeManifestJson(manifestConfig, manifestTemplate, compilation, compiler) {
+  manifestTemplate.content_scripts = []
+  Object.keys(compiler.options.entry).forEach(moduleName => {
+    let matches
+    if (manifestConfig.content_scripts_matches && manifestConfig.content_scripts_matches[moduleName]) {
+      matches = manifestConfig.content_scripts_matches[moduleName]
+    } else {
+      matches = ['<all_urls>']
+      compilation.warnings.push(`content-script '${moduleName}' don't specific the matches in the 'manifestConfig.json', it will use '<all_urls>' instead`)
+    }
+    const hasCss = fs.existsSync(`${compiler.outputPath}/content-script/${moduleName}/index.css`)
+    manifestTemplate.content_scripts.push({
+      matches,
+      js: [`content-script/${moduleName}/index.js`],
+      css: hasCss ? [`content-script/${moduleName}/index.css`] : undefined
+    })
+  })
+  // 避免写入配置文件
+  manifestTemplate.content_scripts_matches = undefined
+  fs.writeFileSync(`${compiler.outputPath}/manifest.json`, JSON.stringify(manifestTemplate))
 }
 
 
