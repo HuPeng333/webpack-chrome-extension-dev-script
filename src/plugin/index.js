@@ -3,7 +3,7 @@ const fsUtils = require('../util/fsUtils')
 const path = require('path')
 const objectUtils = require('../util/objectUtils')
 const manifestTemplate = require('../template/manifestTemplate')
-
+const constant = require('../constant')
 const pluginName = 'ConsoleLogOnBuildWebpackPlugin';
 
 
@@ -11,9 +11,6 @@ const pluginName = 'ConsoleLogOnBuildWebpackPlugin';
 class ConsoleLogOnBuildWebpackPlugin {
 
   constructor(options = {}) {
-    this.popupPath = 'popup'
-    this.publicPath = 'public'
-    this.optionsPath = 'options'
     if (options.manifestConfig) {
       this.manifestTemplate = objectUtils.deepCombineObject(manifestTemplate, options.manifestConfig)
     }
@@ -26,26 +23,29 @@ class ConsoleLogOnBuildWebpackPlugin {
 
     compiler.hooks.afterEmit.tap(pluginName, (compilation) => {
       try {
-        fsUtils.copyDirSync(path.resolve(BASE_SRC_URL, this.popupPath), path.resolve(compiler.outputPath, this.popupPath))
+        fsUtils.copyDirSync(path.resolve(BASE_SRC_URL, constant.popupOutputFolderName), path.resolve(compiler.outputPath, constant.popupOutputFolderName))
       } catch (e) {
-        this.manifestTemplate.action = ''
+        this.manifestTemplate.action = undefined
       }
 
       try {
         // public文件夹
-        fsUtils.copyDirSync(path.resolve(BASE_SRC_URL, this.publicPath), path.resolve(compiler.outputPath, this.publicPath))
+        fsUtils.copyDirSync(path.resolve(BASE_SRC_URL, constant.publicOutputFolderName), path.resolve(compiler.outputPath, constant.publicOutputFolderName))
       } catch (e) {
       }
 
       try {
         // options文件夹
-        fsUtils.copyDirSync(path.resolve(BASE_SRC_URL, this.optionsPath), path.resolve(compiler.outputPath, this.optionsPath))
+        fsUtils.copyDirSync(path.resolve(BASE_SRC_URL, constant.optionsOutputFolderName), path.resolve(compiler.outputPath, constant.optionsOutputFolderName))
       } catch (e) {
-        this.manifestTemplate.options_ui = ''
+        this.manifestTemplate.options_ui = undefined
       }
 
       // 多模块配置
-      writeManifestJson(this.manifestConfig, this.manifestTemplate,compilation, compiler)
+      loadContentScriptConfig(this.manifestConfig, this.manifestTemplate,compilation, compiler)
+      loadBackgroundConfig(this.manifestTemplate, compilation, compiler)
+      // 保存配置
+      fs.writeFileSync(`${compiler.outputPath}/manifest.json`, JSON.stringify(this.manifestTemplate))
     })
 
     let isFirst = true
@@ -80,26 +80,51 @@ function loadPackageJson ({context}, manifestTemplate) {
  * @param compilation
  * @param compiler
  */
-function writeManifestJson(manifestConfig, manifestTemplate, compilation, compiler) {
+function loadContentScriptConfig(manifestConfig, manifestTemplate, compilation, compiler) {
+  if (!fs.existsSync(constant.contentScriptOutputPath(compiler))) {
+    return
+  }
   manifestTemplate.content_scripts = []
-  Object.keys(compiler.options.entry).forEach(moduleName => {
+  const contentScriptModules = fs.readdirSync(constant.contentScriptOutputPath(compiler))
+  contentScriptModules.forEach(moduleName => {
     let matches
+    // 获取manifestConfig中的配置
     if (manifestConfig.content_scripts_matches && manifestConfig.content_scripts_matches[moduleName]) {
       matches = manifestConfig.content_scripts_matches[moduleName]
     } else {
       matches = ['<all_urls>']
       compilation.warnings.push(`content-script '${moduleName}' don't specific the matches in the 'manifestConfig.json', it will use '<all_urls>' instead`)
     }
-    const hasCss = fs.existsSync(`${compiler.outputPath}/content-script/${moduleName}/index.css`)
+    const hasCss = fs.existsSync(`${constant.contentScriptOutputPath(compiler)}/${moduleName}/index.css`)
     manifestTemplate.content_scripts.push({
       matches,
-      js: [`content-script/${moduleName}/index.js`],
-      css: hasCss ? [`content-script/${moduleName}/index.css`] : undefined
+      js: [`${constant.contentScriptOutputFolderName}/${moduleName}/index.js`],
+      css: hasCss ? [`${constant.contentScriptOutputFolderName}/${moduleName}/index.css`] : undefined
     })
   })
   // 避免写入配置文件
   manifestTemplate.content_scripts_matches = undefined
-  fs.writeFileSync(`${compiler.outputPath}/manifest.json`, JSON.stringify(manifestTemplate))
+}
+
+/**
+ * 加载backgroundJs
+ * @param manifestTemplate
+ * @param compilation
+ * @param compiler
+ */
+function loadBackgroundConfig(manifestTemplate, compilation, compiler) {
+  if (!fs.existsSync(`${compiler.outputPath}/background.js`)) {
+    return
+  }
+  if (!manifestTemplate.background) {
+    manifestTemplate.background = {}
+  }
+  manifestTemplate.background.service_worker = `background.js`
+
+  // const backgroundModules = fs.readdirSync(constant.backgroundOutputPath(compiler))
+  // backgroundModules.forEach(moduleName => {
+  //   manifestTemplate.background.scripts.push(`${constant.backgroundOutputFolderName}/${moduleName}/index.js`)
+  // })
 }
 
 

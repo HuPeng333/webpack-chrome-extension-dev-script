@@ -6,12 +6,12 @@ const fs = require('fs')
 function readManifest(path) {
   return JSON.parse(fs.readFileSync(path, 'utf-8'))
 }
+const manifest = readManifest(path.resolve(process.cwd(), 'manifestConfig.json'))
 
 module.exports = {
   output: {
     path: path.resolve(process.cwd(), 'dist'),
     filename: "content-script/[name]/index.js",
-    libraryTarget: "window",
     clean: true,
     publicPath: './'
   },
@@ -26,7 +26,7 @@ module.exports = {
       runtime: false
     }),
     new ChromeExtensionDevPlugin({
-      manifestConfig: readManifest(path.resolve(process.cwd(), 'manifestConfig.json'))
+      manifestConfig: manifest
     })
   ],
   module: {
