@@ -13,8 +13,10 @@ function run(webpackConfig) {
 
   const WEB_SOCKET_PORT = constant.WEBSOCKET_PORT
 
-  const socket = ws.createServer(() => {
-    //
+  const socket = ws.createServer(connection => {
+    connection.on('error', () => {
+      // do nothing
+    })
   }).listen(WEB_SOCKET_PORT)
 
   console.log(`a websocket server is created on port ${WEB_SOCKET_PORT}, it will be used to hot update extension`)
