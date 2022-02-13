@@ -1,12 +1,7 @@
 const path = require('path')
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
-const ChromeExtensionDevPlugin = require('../plugin/index.js')
-const fs = require('fs')
-
-function readManifest(path) {
-  return JSON.parse(fs.readFileSync(path, 'utf-8'))
-}
-const manifest = readManifest(path.resolve(process.cwd(), 'manifestConfig.json'))
+const ChromeExtensionDevPlugin = require("../plugin/index.js")
+const templateUtils = require('../util/templateUtils')
 
 module.exports = {
   output: {
@@ -26,7 +21,7 @@ module.exports = {
       runtime: false
     }),
     new ChromeExtensionDevPlugin({
-      manifestConfig: manifest
+      manifestConfig: templateUtils.loadManifest()
     })
   ],
   module: {

@@ -1,18 +1,23 @@
 {
   "name": "webpack-chrome-extension-dev-script",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "webpack-chrome-extension-dev的webpack构建脚本",
   "bin": {
     "webpack-chrome-extension-dev-script": "./bin/webpack-chrome-extension-dev-script.js"
   },
-  "author": "",
+  "main": "index.js",
+  "author": "HuPeng333",
   "license": "ISC",
   "devDependencies": {
     "chrome-types": "^0.1.86",
     "cross-env": "^7.0.3",
     "css-loader": "^6.6.0",
     "mini-css-extract-plugin": "^2.5.3",
+    "nodejs-websocket": "^1.7.2",
     "webpack": "^5.68.0",
     "webpack-cli": "^4.9.2"
-  }
+  },
+  "bugs": "https://github.com/HuPeng333/webpack-chrome-extension-dev-script/issues",
+  "homepage": "https://github.com/HuPeng333/webpack-chrome-extension-dev-script",
+  "keywords": ["chrome", "extension", "webpack", "chrome extension"]
 }

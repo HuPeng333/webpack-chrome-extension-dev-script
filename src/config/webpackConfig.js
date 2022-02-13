@@ -56,14 +56,5 @@ function loadBackgroundEntry() {
     filename: 'background.js',
     chunkLoading: false
   }
-  // 多入口有点不太合理
-  // const entries = fs.readdirSync(path.resolve(process.cwd(), 'src/background'))
-  // for (let i = 0; i < entries.length; i++) {
-  //   entryMap[entries[i]] = {
-  //     import: path.resolve(process.cwd(), 'src/background', entries[i], 'index'),
-  //     filename: 'background/[name]/index.js',
-  //     chunkLoading: false
-  //   }
-  // }
   return entryMap
 }

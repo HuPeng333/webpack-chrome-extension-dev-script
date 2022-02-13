@@ -3,6 +3,7 @@ const backgroundOutputFolderName = 'background'
 const popupOutputFolderName = 'popup'
 const publicOutputFolderName = 'public'
 const optionsOutputFolderName = 'options'
+const websocketPort = 61581
 
 const contentScriptOutputPath = (compiler) => {
   return `${compiler.outputPath}/${contentScriptOutputFolderName}`
@@ -29,3 +30,4 @@ module.exports.publicOutputFolderName = publicOutputFolderName
 module.exports.optionsOutputFolderName = optionsOutputFolderName
 module.exports.contentScriptEntryFolder = contentScriptEntryFolder
 module.exports.backgroundEntryFolder = backgroundEntryFolder
+module.exports.WEBSOCKET_PORT = websocketPort

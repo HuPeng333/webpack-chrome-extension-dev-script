@@ -93,7 +93,7 @@ function loadContentScriptConfig(manifestConfig, manifestTemplate, compilation, 
       matches = manifestConfig.content_scripts_matches[moduleName]
     } else {
       matches = ['<all_urls>']
-      compilation.warnings.push(`content-script '${moduleName}' don't specific the matches in the 'manifestConfig.json', it will use '<all_urls>' instead`)
+      compilation.warnings.push(`content-script '${moduleName}' not specific the matches in the 'manifestConfig.json', it will use '<all_urls>' instead`)
     }
     const hasCss = fs.existsSync(`${constant.contentScriptOutputPath(compiler)}/${moduleName}/index.css`)
     manifestTemplate.content_scripts.push({
@@ -121,10 +121,6 @@ function loadBackgroundConfig(manifestTemplate, compilation, compiler) {
   }
   manifestTemplate.background.service_worker = `background.js`
 
-  // const backgroundModules = fs.readdirSync(constant.backgroundOutputPath(compiler))
-  // backgroundModules.forEach(moduleName => {
-  //   manifestTemplate.background.scripts.push(`${constant.backgroundOutputFolderName}/${moduleName}/index.js`)
-  // })
 }
 
 

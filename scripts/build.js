@@ -3,6 +3,9 @@ const webpack = require('webpack')
 
 function run(webpackConfig) {
   webpackConfig.mode = 'production'
+  webpackConfig.plugins.push(new webpack.DefinePlugin({
+    SCRIPT_MODE: '"production"'
+  }))
   const compiler = webpack(webpackConfig);
 
   compiler.run((err, stats) => {
